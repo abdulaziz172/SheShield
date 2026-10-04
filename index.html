@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SheShield</title>
+  <meta name="theme-color" content="#db2777">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SheShield">
+  <meta name="application-name" content="SheShield">
+  <link rel="icon" type="image/png" href="/icon-192.png.png">
+  <link rel="apple-touch-icon" href="/icon-192.png.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <div id="authSection">
+    <div class="authBrand">
+      <div class="authIcon">
+        <img src="/icon-192.png.png" alt="SheShield app icon" />
+      </div>
+      <div>
+        <h2>Welcome to SheShield</h2>
+        <p>Login or register to start sending SOS alerts, sharing live location, and saving trusted contacts.</p>
+      </div>
+    </div>
+    <div class="authCard">
+      <input type="email" id="emailInput" placeholder="Email" />
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <label id="rememberLabel"><input type="checkbox" id="rememberMe" /> Remember me for 30 days</label>
+      <div class="authActions">
+        <button id="loginBtn">Login</button>
+        <button id="registerBtn" class="secondaryBtn">Register</button>
+      </div>
+      <p id="authMessage"></p>
+    </div>
+  </div>
+
+  <div id="mainApp" style="display: none;">
+
+    <div id="topBar">
+      <button id="menuToggle" aria-label="Open menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+      <h1><img src="/icon-192.png.png" alt="SheShield app icon" class="topBarIcon" /> SheShield</h1>
+      <p id="status" class="statusText"></p>
+    </div>
+
+    <div id="sidebar">
+      <div class="sidebarProfile" id="sidebarProfileCard">
+        <div class="sidebarProfileAvatar" id="sidebarProfileAvatar">👤</div>
+        <div class="sidebarProfileInfo">
+          <div id="sidebarProfileName">Guest User</div>
+          <div id="sidebarProfilePhone">Add your mobile number</div>
+        </div>
+      </div>
+      <div class="sidebarItem active" data-section="homeSection">🏠 Home</div>
+      <div class="sidebarItem" data-section="contactsSection">📞 Emergency Contacts</div>
+      <div class="sidebarItem" data-section="profileSection">👤 Profile</div>
+      <div class="sidebarItem" data-section="incidentSection">📝 Report Incident</div>
+      <div class="sidebarItem" data-section="chatSection">💬 Chat</div>
+      <div class="sidebarItem" data-section="tipsSection">💡 Safety Tips</div>
+      <div class="sidebarItem" data-section="aboutSection">ℹ️ About / Help</div>
+      <div class="sidebarItem" id="installAppBtn">⬇️ Download / Add to Home</div>
+      <div class="sidebarItem" id="adminSidebarItem" data-section="adminSection" style="display:none;">🛠️ Admin Panel</div>
+      <div class="sidebarItem" id="logoutBtn">🚪 Logout</div>
+    </div>
+
+    <div id="overlay"></div>
+
+    <main id="contentArea">
+
+      <div class="pageSection" id="homeSection">
+        <div class="homeActions">
+          <button id="alarmBtn" class="secondaryBtn">🔊 Alarm</button>
+          <button id="sosBtn">🚨 SOS</button>
+          <button id="findPoliceBtn" class="secondaryBtn">🚓 Find Nearest Police Station</button>
+          <button id="openMenuBtn" class="secondaryBtn">☰ Open Sections</button>
+          <button id="openGoogleMapsRouteBtn" class="secondaryBtn" style="display:none;">🗺️ Open Safe Route in Google Maps</button>
+        </div>
+
+        <p id="sosMessage"></p>
+        <p id="locationDisplay"></p>
+        <div id="map"></div>
+        <p id="policeMessage"></p>
+
+        <div class="homeHero">
+          <div class="heroText">
+            <span class="heroBadge">Women's Safety</span>
+            <h2>Stay protected with one tap SOS and live location sharing.</h2>
+            <p>Alert trusted contacts instantly, locate nearby police stations, and keep your safety details in one secure app.</p>
+          </div>
+          <div class="heroCards">
+            <div class="heroCard">
+              <strong>Fast SOS</strong>
+              <p>Send location alerts immediately to your saved contacts.</p>
+            </div>
+            <div class="heroCard">
+              <strong>Live Map</strong>
+              <p>View nearby police stations and get quick directions.</p>
+            </div>
+            <div class="heroCard">
+              <strong>Incident Log</strong>
+              <p>Record and remove incident reports for your safety history.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="quickSteps">
+          <div class="stepCard">
+            <strong>1</strong>
+            <p>Login, save a trusted contact, then tap SOS to capture your location.</p>
+          </div>
+          <div class="stepCard">
+            <strong>2</strong>
+            <p>Use Find Nearest Police Station to display nearby stations on the map.</p>
+          </div>
+          <div class="stepCard">
+            <strong>3</strong>
+            <p>Save incident reports and remove them when resolved.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pageSection" id="contactsSection" style="display:none;">
+        <h3>Emergency Contact</h3>
+        <p id="contactPermissionMessage">Allow access to your phone contacts or save a trusted WhatsApp number for SOS.</p>
+        <button id="contactPermissionBtn">Allow Contact Access</button>
+        <input type="text" id="contactName" placeholder="Contact Name" />
+        <input type="tel" id="contactPhone" placeholder="WhatsApp Number (e.g. 91XXXXXXXXXX)" />
+        <button id="saveContactBtn">Save Contact</button>
+        <button id="pickContactBtn">📱 Pick Contact</button>
+        <div id="savedContactSection">
+          <p id="savedContactLabel">No contact saved yet.</p>
+          <div id="contactsList"></div>
+        </div>
+        <p id="contactMessage"></p>
+      </div>
+
+      <div class="pageSection" id="profileSection" style="display:none;">
+        <h3>👤 Your Profile</h3>
+        <div class="profileForm">
+          <div class="profileTop">
+            <div class="profileAvatarCard">
+              <div class="profileAvatarPreview" id="profileAvatarPreview">+</div>
+              <button id="editProfileImageBtn" type="button" class="secondaryBtn profileEditBtn">Edit profile image</button>
+              <input type="file" id="profileImageInput" accept="image/*" style="display:none;" />
+              <p class="profileHint">A profile image helps your trusted contacts recognize you quickly.</p>
+            </div>
+            <div class="profileFields">
+              <input type="text" id="profileName" placeholder="Your Name" />
+              <input type="tel" id="profilePhone" placeholder="Mobile Number" />
+              <textarea id="profileDescription" placeholder="Write a short description about yourself..." rows="4"></textarea>
+            </div>
+          </div>
+          <button id="saveProfileBtn">Save Profile</button>
+          <p id="profileMessage"></p>
+        </div>
+      </div>
+
+      <div class="pageSection" id="incidentSection" style="display:none;">
+        <h3>Report an Incident</h3>
+        <select id="incidentType">
+          <option value="">Select type</option>
+          <option value="Harassment">Harassment</option>
+          <option value="Theft">Theft</option>
+          <option value="Unsafe Area">Unsafe Area</option>
+          <option value="Suspicious Activity">Suspicious Activity</option>
+          <option value="Other">Other</option>
+        </select>
+        <textarea id="incidentDescription" placeholder="Describe what happened..." rows="3"></textarea>
+        <button id="reportIncidentBtn">Submit Report</button>
+        <p id="incidentMessage"></p>
+        <h4>Your Past Reports</h4>
+        <div id="incidentList"></div>
+      </div>
+
+      <div class="pageSection" id="chatSection" style="display:none;">
+        <h3>💬 Safety Chat</h3>
+        <button id="loadOlderMessagesBtn" class="secondaryBtn" style="margin-bottom: 12px; display:none; width: 100%;">⬆️ Load older messages</button>
+        <div id="chatWindow"></div>
+        <p id="chatTypingIndicator" class="chatTypingIndicator"></p>
+        <div class="chatInputRow">
+          <input type="text" id="chatMessageInput" placeholder="Type a message..." />
+          <button id="shareLocationBtn" aria-label="Share location" title="Share Location">📍</button>
+          <button id="sendChatBtn" aria-label="Send message" title="Send">➤</button>
+        </div>
+        <p id="chatStatus"></p>
+      </div>
+
+      <div class="pageSection" id="tipsSection" style="display:none;">
+        <h3>💡 Safety Tips</h3>
+        <ul id="tipsList">
+          <li>Share your live location with a trusted contact when traveling alone.</li>
+          <li>Keep your phone charged and easily accessible at all times.</li>
+          <li>Avoid poorly lit or isolated areas, especially at night.</li>
+          <li>Trust your instincts — if a situation feels unsafe, leave immediately.</li>
+          <li>Save local emergency numbers (police: 100, women's helpline: 1091) in your phone.</li>
+          <li>Vary your daily routine and routes when possible.</li>
+          <li>Inform someone you trust about your travel plans and expected arrival time.</li>
+          <li>Keep a whistle or personal safety alarm accessible.</li>
+        </ul>
+      </div>
+
+      <div class="pageSection" id="aboutSection" style="display:none;">
+        <h3>ℹ️ About SheShield</h3>
+        <p>SheShield is a smart women's safety web app built to provide quick access to emergency help, live location sharing, nearby police stations, and incident reporting — all in one place.</p>
+        <p>In an emergency, always call your local emergency number first (India: 100 for police, 1091 for women's helpline).</p>
+        <p>For contact us: <a href="mailto:forcontactus01@gmail.com">forcontactus01@gmail.com</a></p>
+      </div>
+
+      <div class="pageSection" id="adminSection" style="display:none;">
+  <h3 class="adminTitle">🛠️ Admin Panel</h3>
+  
+  <!-- This layout container splits the content into columns -->
+  <div class="adminColumnsContainer">
+    
+    <!-- Left Column -->
+    <div class="adminColumn">
+      <h4>Moderate Chat</h4>
+      <div id="adminChatList"></div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="adminColumn">
+      <h4>Alarm Trigger History</h4>
+      <div id="adminAlarmList"></div>
+    </div>
+
+  </div>
+</div>
+
+    </main>
+  </div>
+
+  <div id="publicProfileModal" class="publicProfileModal" style="display:none;">
+    <div class="publicProfileModalBox">
+      <span id="closePublicProfileModal" class="publicProfileClose">×</span>
+      <div class="publicProfileContent">
+        <div id="publicProfileAvatar" class="publicProfileAvatar">👤</div>
+        <div class="publicProfileInfo">
+          <h3 id="publicProfileName">Guest User</h3>
+          <p id="publicProfileDescription">No profile description</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="publicProfileImageModal" class="publicProfileImageModal" style="display:none;">
+    <div class="publicProfileImageModalBox">
+      <span id="closePublicProfileImageModal" class="publicProfileImageClose">×</span>
+      <img id="largePublicProfileImage" src="" alt="Profile image" />
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
