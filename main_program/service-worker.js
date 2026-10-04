@@ -1,13 +1,12 @@
-const CACHE_NAME = "sheshield-cache-v3";
+const CACHE_NAME = "sheshield-cache-v4";
 const urlsToCache = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/app.js",
-  "/firebase-config.js",
+  "/main_program/index.html",
+  "/main_program/style.css",
+  "/main_program/app.js",
+  "/main_program/firebase-config.js",
   "/manifest.json",
-  "/icon-192.png.png",
-  "/icon-512.png.png"
+  "/icon_of_webApp/icon-192.png.png",
+  "/icon_of_webApp/icon-512.png.png"
 ];
 
 self.addEventListener("install", function (event) {
@@ -63,7 +62,7 @@ self.addEventListener("fetch", function (event) {
           return response;
         })
         .catch(function () {
-          return caches.match("/index.html");
+          return caches.match("/main_program/index.html");
         })
     );
     return;
@@ -85,7 +84,7 @@ self.addEventListener("fetch", function (event) {
             return response;
           })
           .catch(function () {
-            return caches.match("/index.html");
+            return caches.match("/main_program/index.html");
           });
       })
     );
